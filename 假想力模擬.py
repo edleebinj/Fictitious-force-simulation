@@ -3,16 +3,22 @@ import sys
 
 ballradius=0.05
 kspring=20000
-kair=0.02
+kair=0.01
 m=0.1
 M=3000
 g=vector(0,-9.8,0)
 ropelength=1
 
-scene=canvas(title="press left or right to move, down to brake",width=1200,height=600,x=0,y=0,center=vector(0,1,0),background=color.black,range=4)
+graph(width = 200,height = 200,min = 0, ymax = 30,xtitle="t",ytitle="v")
+f1=gcurve(color=color.blue)
+
+
+scene=canvas(title="press left or right to move, down to brake",width=600,height=400,x=0,y=0,center=vector(0,1,0),background=color.black,range=4)
 bus=box(pos=vector(0,1,0),width=2,height=2,length=5,opacity=0.3,v=vector(0,0,0),a=vector(0,0,0))
 floor=box(width=100,height=0.01,length=100,pos=vector(0,0,0),texture={'file':"https://i.imgur.com/IPcmVFn.jpg",'turn':-1})#texture={'file':"https://i.imgur.com/IPcmVFn.jpg",'turn':4})
 scene.camera.follow(bus)
+
+b = attach_arrow(bus, "axis", scale=mag(bus.v),shaftwidth=0.3, color=color.green)
 
 ball=sphere(radius=ballradius,color=color.yellow,make_trail=True,retain=1000,interval=1,trail_radius=0.01,trail_color = color.white,pos=vector(0,1,0),v=vector(0,0,0))
 rope=cylinder(radius=ballradius/5,pos=vector(0,2,0),axis=vector(0,-ropelength,0),color=color.green)
@@ -32,7 +38,7 @@ def keyinput(evt):
         else: bus.v/=stop[s]
         if mag(bus.v)<10**-1:
             bus.v=vector(0,0,0)
-    
+        
 scene.bind('keydown', keyinput)              
 
 ball.pos=vector(0,-1,0)+rope.pos
@@ -46,12 +52,14 @@ while True:
     rate(1/dt)
 
     t+=dt
-    
+
     bus.v+=bus.a*dt
     bus.pos+=bus.v*dt
 
     ball.a=(m*g+springforce(ball.pos-rope.pos,ropelength))-kair*ball.v/m
     ball.v+=ball.a*dt
+
+    #print(mag(bus.a))
     ball.pos+=ball.v*dt
 
     rope.pos=bus.pos+vector(0,1,0)
@@ -59,4 +67,9 @@ while True:
     rope.axis=ball.pos-rope.pos
     #print(mag(ball.pos-rope.pos))
     #print(bus.v)
-sys.exit()
+    f1.plot(pos=(t,mag(ball.v)))
+    b.stop()
+    if bus.v.x>0:
+        b = attach_arrow(bus, "axis", scale=mag(bus.v)/10,shaftwidth=0.05, color=color.green)
+    else:
+        b = attach_arrow(bus, "axis", scale=-mag(bus.v)/10,shaftwidth=0.05, color=color.green)
